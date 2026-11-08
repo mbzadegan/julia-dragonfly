@@ -28,12 +28,12 @@
 #endif
 
 // Figure out the best signals/timers to use for this platform
-#if defined(__APPLE__) // Darwin's mach ports allow signal-free thread management
+#if defined(__APPLE__)
 #define HAVE_MACH
 #define HAVE_KEVENT
-#elif defined(__OpenBSD__)
+#elif defined(__OpenBSD__) || defined(__DragonFly__)
 #define HAVE_KEVENT
-#else // generic Linux or FreeBSD
+#else
 #define HAVE_TIMER
 #endif
 
@@ -74,7 +74,7 @@ extern void jl_fake_signal_return(void);
 // Create a trampoline function that does the stack manipulations for jl_call_in_ctx/jl_call_in_state
 // The callee-saved registers still may get smashed (by the cdecl fptr), since we didn't explicitly copy all of the
 // state to the stack (to build a real sigreturn frame).
-#if (defined(_OS_LINUX_) || defined(_OS_FREEBSD_) || defined(_OS_OPENBSD_)) && defined(_CPU_X86_64_)
+#if (defined(_OS_LINUX_) || defined(_OS_FREEBSD_) || defined(_OS_DRAGONFLY_) || defined(_OS_OPENBSD_)) && defined(_CPU_X86_64_)
 __asm__(
     "  .type jl_fake_signal_return, @function\n"
     "jl_fake_signal_return:\n"
@@ -176,7 +176,7 @@ static inline uintptr_t jl_get_rsp_from_ctx(const void *_ctx)
 #elif defined(_OS_LINUX_) && (defined(_CPU_RISCV64_))
     const ucontext_t *ctx = (const ucontext_t*)_ctx;
     return ctx->uc_mcontext.__gregs[REG_SP];
-#elif defined(_OS_FREEBSD_) && defined(_CPU_X86_64_)
+#elif (defined(_OS_FREEBSD_) || defined(_OS_DRAGONFLY_)) && defined(_CPU_X86_64_)
     const ucontext_t *ctx = (const ucontext_t*)_ctx;
     return ctx->uc_mcontext.mc_rsp;
 #elif defined(_OS_FREEBSD_) && defined(_CPU_AARCH64_)
@@ -223,7 +223,7 @@ JL_NO_ASAN static void jl_call_in_ctx(jl_ptls_t ptls, void (*fptr)(void), int si
     ctx->uc_mcontext.gregs[REG_RSP] = rsp; // set stack pointer
     ctx->uc_mcontext.gregs[REG_RDI] = (uintptr_t)&ptls->signal_ctx_pc; // first arg points to signal_ctx
     ctx->uc_mcontext.gregs[REG_RIP] = (uintptr_t)&jl_fake_signal_return; // "call" jl_fake_signal_return
-#elif defined(_OS_FREEBSD_) && defined(_CPU_X86_64_)
+#elif (defined(_OS_FREEBSD_) || defined(_OS_DRAGONFLY_)) && defined(_CPU_X86_64_)
     ucontext_t *ctx = (ucontext_t*)_ctx;
     // Save context in ptls for stack unwinding
     ptls->signal_ctx_pc = ctx->uc_mcontext.mc_rip;
@@ -480,7 +480,7 @@ int is_write_fault(void *context) {
     }
     return 0;
 }
-#elif defined(_OS_FREEBSD_) && (defined(_CPU_X86_64_) || defined(_CPU_X86_))
+#elif (defined(_OS_FREEBSD_) || defined(_OS_DRAGONFLY_)) && (defined(_CPU_X86_64_) || defined(_CPU_X86_))
 int is_write_fault(void *context) {
     ucontext_t *ctx = (ucontext_t*)context;
     return exc_reg_is_write_fault(ctx->uc_mcontext.mc_err);
@@ -826,10 +826,11 @@ JL_DLLEXPORT void jl_profile_stop_timer(void)
     uv_mutex_unlock(&bt_data_prof_lock);
 }
 
-#elif defined(__OpenBSD__)
+#elif defined(__OpenBSD__) || defined(__DragonFly__)
 
-JL_DLLEXPORT int jl_profile_start_timer(void)
+JL_DLLEXPORT int jl_profile_start_timer(uint8_t all_tasks)
 {
+    (void)all_tasks;
     return -1;
 }
 

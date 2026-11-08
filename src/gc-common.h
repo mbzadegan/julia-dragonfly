@@ -16,7 +16,7 @@
 
 #if defined(_OS_DARWIN_)
 #include <malloc/malloc.h>
-#else
+#elif defined(__GLIBC__)
 #include <malloc.h> // for malloc_trim
 #endif
 
