@@ -2002,10 +2002,12 @@ JuliaOJIT::JuliaOJIT()
 
     // Resolve non-lock free atomic functions in the libatomic1 library.
     // This is the library that provides support for c11/c++11 atomic operations.
-    auto TT = getTargetTriple();
-    const char *const libatomic = TT.isOSLinux() || TT.isOSFreeBSD() ?
-        "libatomic.so.1" : TT.isOSWindows() ?
-        "libatomic-1.dll" : nullptr;
+        auto TT = getTargetTriple();
+    const char *const libatomic =
+        TT.isOSLinux() || TT.isOSFreeBSD() || TT.isOSDragonFly() ?
+        "libatomic.so.1" :
+        TT.isOSWindows() ? "libatomic-1.dll" : nullptr;
+
     if (libatomic) {
         static void *atomic_hdl = jl_load_dynamic_library(libatomic, JL_RTLD_LOCAL, 0);
         if (atomic_hdl != NULL) {
