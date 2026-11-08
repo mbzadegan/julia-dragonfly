@@ -214,6 +214,11 @@ RT_LIBS := $(call whole_archive,$(LIBUV)) $(call whole_archive,$(LIBUTF8PROC)) $
 CG_LIBS := $(LIBUNWIND) $(CG_LLVMLINK) $(OSLIBS) $(LIBTRACYCLIENT) $(LIBITTAPI)
 endif
 
+ifeq ($(OS),DragonFly)
+RT_LIBS += -L/usr/local/lib -lepoll-shim
+endif
+
+
 ifeq ($(USEGCC),1)
 ifeq ($(USE_RT_STATIC_LIBGCC),1)
 RT_LIBS += -static-libgcc

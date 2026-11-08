@@ -15,7 +15,7 @@ OPENSSL_TARGET := mingw64
 else
 OPENSSL_TARGET := mingw
 endif
-else ifeq ($(OS),FreeBSD)
+else ifneq ($(filter FreeBSD DragonFly,$(OS)),)
 ifeq ($(ARCH),aarch64)
 OPENSSL_TARGET := BSD-aarch64
 else

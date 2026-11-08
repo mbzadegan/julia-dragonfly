@@ -10,7 +10,7 @@
 
 #include "llvm-version.h"
 #include "platform.h"
-
+#include <sys/resource.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include "julia.h"
 #include "julia_internal.h"
