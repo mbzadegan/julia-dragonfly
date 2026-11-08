@@ -83,6 +83,8 @@
 
 #if defined(__FreeBSD__)
 #define _OS_FREEBSD_
+#elif defined(__DragonFly__)
+#define _OS_DRAGONFLY_
 #elif defined(__OpenBSD__)
 #define _OS_OPENBSD_
 #elif defined(__linux__)

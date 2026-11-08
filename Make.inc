@@ -1923,7 +1923,7 @@ LIBGCC_NAME := libgcc_s.1.$(SHLIB_EXT)
 endif
 endif
 endif
-ifneq ($(findstring $(OS),Linux FreeBSD),)
+ifneq ($(filter Linux FreeBSD DragonFly,$(OS)),)
 LIBGCC_NAME := libgcc_s.$(SHLIB_EXT).1
 endif
 
